@@ -1,8 +1,15 @@
 import streamlit as st
 import pickle
 import random
+from io import BytesIO
+import base64
 
-# Ultra-simple response database
+# ===== EMBEDDED MODEL (No file loading needed) =====
+MODEL_DATA = """
+COPY_THE_ENTIRE_CONTENT_OF_fitbot_model.pkl_HERE
+"""
+
+# Simple response database
 RESPONSES = {
     "workout": [
         "Do 3 sets of 10 push-ups daily",
@@ -21,16 +28,15 @@ RESPONSES = {
     ]
 }
 
-# Load model (simplified)
 def load_model():
     try:
-        with open('fitbot_model.pkl', 'rb') as f:
-            return pickle.load(f)
-    except:
-        st.error("Model loading failed")
+        # Decode embedded model
+        model_bytes = base64.b64decode(MODEL_DATA)
+        return pickle.load(BytesIO(model_bytes))
+    except Exception as e:
+        st.error(f"Model error: {str(e)}")
         return None
 
-# Main app
 def main():
     st.title("FitBot 💪")
     st.write("Ask about workouts, diet, or gym tips!")
@@ -42,16 +48,15 @@ def main():
     user_input = st.text_input("Your question:").lower()
     
     if user_input:
-        # Simple keyword matching (no NLP for reliability)
+        # Simple classification
         if "workout" in user_input or "exercise" in user_input:
             category = "workout"
         elif "diet" in user_input or "food" in user_input:
             category = "diet"
         else:
-            category = "gym"  # Default
-        
-        response = random.choice(RESPONSES[category])
-        st.success(f"FitBot: {response}")
+            category = "gym"
+            
+        st.success(f"FitBot: {random.choice(RESPONSES[category])}")
         st.info(f"Category: {category}")
 
 if __name__ == "__main__":
